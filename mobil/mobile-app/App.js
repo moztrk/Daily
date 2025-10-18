@@ -1,32 +1,67 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import React from 'react';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, Keyboard } from 'react-native';
 
 export default function App() {
-  // Gelen mesajı ve yüklenme durumunu saklamak için state'ler
-  const [mesaj, setMesaj] = useState('');
-  const [loading, setLoading] = useState(true);
+  // Kullanıcının yazdığı metni tutmak için state
+  const [metin, setMetin] = React.useState('');
+  // Kaydetme işlemi sırasında butonu pasif yapmak için state
+  const [loading, setLoading] = React.useState(false);
 
-  // Bu fonksiyon component ekrana ilk geldiğinde bir kere çalışır
-  useEffect(() => {
-    // KENDİ IP ADRESİNİ YAZMAYI UNUTMA!
-    fetch('http://192.168.192.155:8000') // ÖRNEK IP, BURAYI DEĞİŞTİR
-      .then((response) => response.json())
-      .then((json) => setMesaj(json.mesaj)) // Gelen JSON'daki "mesaj" alanını al
-      .catch((error) => {
-        console.error(error);
-        setMesaj('Bağlantı Hatası!'); // Hata olursa bunu yaz
-      })
-      .finally(() => setLoading(false)); // Her durumda yüklenmeyi bitir
-  }, []);
+  // KENDİ IP ADRESİNİ YAZMAYI UNUTMA!
+  const API_URL = 'http://192.168.1.130:8000'; // ÖRNEK IP, BURAYI DEĞİŞTİR
+
+  const kaydet = async () => {
+    if (!metin.trim()) {
+      Alert.alert('Hata', 'Lütfen bir metin giriniz.');
+      return;
+    }
+
+    setLoading(true);
+    Keyboard.dismiss(); // Klavyeyi kapat
+
+    try {
+      const response = await fetch(`${API_URL}/entries`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // Backend'deki Pydantic modeline uygun JSON gönder
+        body: JSON.stringify({ metin: metin }),
+      });
+
+      const json = await response.json();
+
+      if (json.status === 'success') {
+        Alert.alert('Başarılı', 'Girdiniz başarıyla kaydedildi!');
+        setMetin(''); // Metin kutusunu temizle
+      } else {
+        Alert.alert('Hata', `Bir sorun oluştu: ${json.message}`);
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Bağlantı Hatası', 'Sunucuya bağlanılamadı. Lütfen tekrar deneyin.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Lumos TEXT'ten Gelen Mesaj:</Text>
-      {loading ? (
-        <ActivityIndicator size="large" color="#0000ff" />
-      ) : (
-        <Text style={styles.message}>{mesaj}</Text>
-      )}
+      <Text style={styles.title}>Bugün Nasılsın?</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Bugün olanları buraya yaz..."
+        multiline={true}
+        value={metin}
+        onChangeText={setMetin} // Yazılan her karakterde 'metin' state'ini güncelle
+      />
+      <TouchableOpacity
+        style={[styles.button, loading && styles.buttonDisabled]}
+        onPress={kaydet}
+        disabled={loading} // Yükleme sırasında butonu devre dışı bırak
+      >
+        <Text style={styles.buttonText}>{loading ? 'Kaydediliyor...' : 'Kaydet'}</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -34,17 +69,41 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f5f5f5',
     alignItems: 'center',
     justifyContent: 'center',
+    padding: 20,
   },
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  message: {
     fontSize: 24,
-    color: 'green',
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  input: {
+    width: '100%',
+    height: 150,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 15,
+    textAlignVertical: 'top', // Metnin yukarıdan başlamasını sağlar
+    fontSize: 16,
+    marginBottom: 20,
+  },
+  button: {
+    width: '100%',
+    backgroundColor: '#007bff',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  buttonDisabled: {
+    backgroundColor: '#a9a9a9',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
