@@ -1,0 +1,37 @@
+# 1. GİZLİ BİLGİLER VE ANAHTARLAR
+# En önemlisi! API anahtarları, veritabanı şifreleri.
+.env
+*.env
+
+# 2. SANAL ORTAM (VIRTUAL ENVIRONMENT)
+# İçinde kurulu tüm kütüphaneler var (FastAPI, Transformers, Torch vb.)
+# Bu klasör GİGABAYTLARCA yer tutabilir. Asla commit'lenmez.
+venv/
+.venv/
+env/
+.env/
+
+# 3. HUGGING FACE MODEL CACHE'İ
+# Transformers kütüphanesinin indirdiği o devasa (400MB+) modeller
+# Bazen proje klasörü içinde .cache/ altında tutulur.
+.cache/
+
+# 4. PYTHON CACHE VE DERLENMİŞ DOSYALAR
+# Python'un hızlanmak için oluşturduğu geçici dosyalar
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 5. IDE / EDİTÖR AYAR DOSYALARI
+# Kişisel çalışma ortamı ayarların
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# 6. İŞLETİM SİSTEMİ DOSYALARI
+# macOS ve Windows'un oluşturduğu gereksiz sistem dosyaları
+.DS_Store
+Thumbs.db
+desktop.ini

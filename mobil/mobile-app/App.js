@@ -7,8 +7,8 @@ export default function App() {
   // Kaydetme işlemi sırasında butonu pasif yapmak için state
   const [loading, setLoading] = React.useState(false);
 
-  // KENDİ IP ADRESİNİ YAZMAYI UNUTMA!
-  const API_URL = 'http://192.168.1.130:8000'; // ÖRNEK IP, BURAYI DEĞİŞTİR
+  
+  const API_URL = 'http://192.168.60.192:8000'; 
 
   const kaydet = async () => {
     if (!metin.trim()) {
@@ -17,7 +17,7 @@ export default function App() {
     }
 
     setLoading(true);
-    Keyboard.dismiss(); // Klavyeyi kapat
+    Keyboard.dismiss(); 
 
     try {
       const response = await fetch(`${API_URL}/entries`, {
