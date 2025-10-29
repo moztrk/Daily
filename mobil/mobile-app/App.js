@@ -8,7 +8,7 @@ export default function App() {
   const [loading, setLoading] = React.useState(false);
 
   
-  const API_URL = 'http://192.168.60.192:8000'; 
+  const API_URL = 'http://192.168.118.5:8000'; 
 
   const kaydet = async () => {
     if (!metin.trim()) {
