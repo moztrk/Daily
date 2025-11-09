@@ -2,7 +2,7 @@
 import { Alert, Keyboard } from 'react-native';
 
 // API_URL'i de buraya taşıdık.
-const API_URL = 'http://192.168.118.5:8000'; // Kendi IP adresin
+const API_URL = 'http://192.168.60.192:8000'; // Kendi IP adresin
 
 export const kaydet = async (metin, setLoading, setMetin) => {
   if (!metin.trim()) {

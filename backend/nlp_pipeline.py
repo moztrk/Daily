@@ -1,4 +1,4 @@
-# nlp_pipeline.py (SENTENCE-BERT YAKLAŞIMI - ÇALIŞIR GARANTİLİ)
+# nlp_pipeline.py 
 
 from transformers import pipeline, AutoTokenizer, AutoModel
 import torch
@@ -9,14 +9,14 @@ logging.basicConfig(level=logging.INFO)
 print("NLP Pipeline modülü yükleniyor...")
 
 try:
-    # 1. DUYGU ANALİZİ
+    
     sentiment_pipeline = pipeline(
         "sentiment-analysis",
         model="savasy/bert-base-turkish-sentiment-cased"
     )
     print("✓ Duygu analizi modeli yüklendi.")
 
-    # 2. NER (VARLIK TANIMA)
+    
     ner_pipeline = pipeline(
         "ner",
         model="savasy/bert-base-turkish-ner-cased",
@@ -25,8 +25,7 @@ try:
     )
     print("✓ NER modeli yüklendi.")
 
-    # 3. SENTENCE-BERT (TÜRKÇE EMBEDDİNG)
-    # Bu model Türkçe cümleler için semantic embedding üretir
+    
     sbert_model_name = "emrecan/bert-base-turkish-cased-mean-nli-stsb-tr"
     sbert_tokenizer = AutoTokenizer.from_pretrained(sbert_model_name)
     sbert_model = AutoModel.from_pretrained(sbert_model_name)
@@ -44,7 +43,7 @@ try:
             model_output = sbert_model(**encoded_input)
         return mean_pooling(model_output, encoded_input['attention_mask'])
     
-    # Konu etiketleri için embedding'leri önceden hesapla (performans için)
+    
     KONU_ETIKETLERI = {
         "İş ve Kariyer": "iş toplantı patron müdür proje görev şirket ofis maaş terfi kariyer işyeri mesai",
         "Eğitim ve Okul": "okul ders öğretmen sınav ödev üniversite öğrenci not eğitim",
@@ -57,7 +56,7 @@ try:
         "Genel Günlük": "bugün gün günlük rutin normal gündelik sabah akşam"
     }
     
-    # HARD KEYWORD MATCHING İÇİN ANAHTAR KELİMELER
+    
     HARD_KEYWORDS = {
         "İş ve Kariyer": ["iş", "işe", "işten", "işyeri", "patron", "patronum", "müdür", "toplantı", "proje", "görev", "ofis", "mesai", "şirket"],
         "Eğitim ve Okul": ["okul", "okula", "okulda", "okuldan", "ders", "derste", "öğretmen", "sınav", "ödev", "üniversite", "öğrenci"],
@@ -68,12 +67,12 @@ try:
         "Kişisel Gelişim": ["hedef", "motivasyon", "başarı", "gelişim", "kitap", "kitabı", "oku", "okuma", "okuyorum"],
     }
     
-    # BAĞLAMSAL FİLTRE: Bu kelimeleri SADECE diğer keyword'lerle birlikte kabul et
+    
     CONTEXTUAL_KEYWORDS = {
-        "Finans ve Para": ["aldım", "aldı"],  # Sadece para/alışveriş bağlamında geçerlı
+        "Finans ve Para": ["aldım", "aldı"],  
     }
     
-    # Her konu için embedding hesapla
+    
     konu_embeddings = {}
     for konu, keywords in KONU_ETIKETLERI.items():
         konu_embeddings[konu] = F.normalize(get_sentence_embedding(keywords), p=2, dim=1)
