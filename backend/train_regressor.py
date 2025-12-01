@@ -1,100 +1,77 @@
-# train_regressor.py
+# train_regressor.py (GÜNCELLENMİŞ - METRİKLİ)
 
 import pandas as pd
 import pickle
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import numpy as np
 import warnings
 
 warnings.filterwarnings('ignore')
 
 # --- 1. VERİ YÜKLEME ---
-
 try:
     train_df = pd.read_csv('train_data.csv')
     val_df = pd.read_csv('val_data.csv')
 except FileNotFoundError:
-    print("❌ HATA: train_data.csv veya val_data.csv bulunamadı.")
-    print("💡 Önce 'python prepare_data.py' script'ini çalıştırdığınızdan emin olun.")
+    print("❌ Dosyalar bulunamadı.")
     exit(1)
 
-print(f"✓ Train verisi yüklendi: {train_df.shape}")
-print(f"✓ Validation verisi yüklendi: {val_df.shape}")
+# --- 2. HEDEF VE ÖZELLİKLER ---
+TARGET_COLUMN = 'user_mood'
 
-# --- 2. HEDEF (y) VE ÖZELLİKLER (X) BELİRLEME ---
+X_train = train_df.drop(columns=[TARGET_COLUMN, 'duygu_label'])
+y_train = train_df[TARGET_COLUMN]
+X_val = val_df.drop(columns=[TARGET_COLUMN, 'duygu_label'])
+y_val = val_df[TARGET_COLUMN]
+FEATURES = X_train.columns.tolist()
 
-# YENİ HEDEF: 'duygu_skoru' (sayısal değer)
-TARGET_COLUMN = 'duygu_skoru'
-
-# Özellikler (X): Hedef sütun VE onunla ilişkili 'duygu_label' dışındaki her şey
-try:
-    X_train = train_df.drop(columns=[TARGET_COLUMN, 'duygu_label'])
-    y_train = train_df[TARGET_COLUMN]
-
-    X_val = val_df.drop(columns=[TARGET_COLUMN, 'duygu_label'])
-    y_val = val_df[TARGET_COLUMN]
-    
-    # Modelin hangi sütunlara bakarak öğrendiğini kaydet
-    FEATURES = X_train.columns.tolist()
-    
-except KeyError:
-    print(f"❌ HATA: '{TARGET_COLUMN}' veya 'duygu_label' sütunu veride bulunamadı.")
-    exit(1)
-
-print(f"✓ Model, {len(FEATURES)} adet özellik (feature) kullanarak eğitilecek.")
-print(f"🎯 Hedef Sütun (Tahmin): {TARGET_COLUMN}")
-
-# --- 3. MODELİ TANIMLAMA VE EĞİTME ---
-
-# İş paketinde istenen model
+# --- 3. EĞİTİM ---
+print("\n🚀 Model Eğitiliyor...")
 model = RandomForestRegressor(
     random_state=42, 
-    n_estimators=150,      # Ormandaki ağaç sayısı
-    max_depth=10,          # Ağaçların maksimum derinliği
-    min_samples_leaf=5     # Bir yapraktaki minimum örnek (ezberlemeyi önler)
+    n_estimators=200,
+    max_depth=15,
+    min_samples_leaf=2
 )
-
-print("\n" + "="*60)
-print(f"🚀 {type(model).__name__} EĞİTİMİ BAŞLIYOR...")
-print("="*60)
-
-# Modeli eğit
-print("   ⏳ Eğitiliyor...")
 model.fit(X_train, y_train)
 
-# --- 4. DEĞERLENDİRME (REGRESYON METRİKLERİ) ---
-
-print("   📊 Değerlendiriliyor (Validation Set)...")
+# --- 4. DEĞERLENDİRME (DETAYLI METRİKLER) ---
+print("📊 Değerlendiriliyor...")
 y_pred = model.predict(X_val)
 
-# RMSE (Root Mean Squared Error) kullanalım.
-# Bu, modelin tahminlerinin ortalama ne kadar "saptığını" gösterir.
-# 0'a ne kadar yakınsa o kadar iyidir.
-mse = mean_squared_error(y_val, y_pred)
-rmse = np.sqrt(mse)
+# Temel Hata Metrikleri
+rmse = np.sqrt(mean_squared_error(y_val, y_pred))
+mae = mean_absolute_error(y_val, y_pred)
 
-print(f"\n   🎯 Kök Ortalama Kare Hata (RMSE): {rmse:.4f}")
-print("       (Bu değerin 0'a yakın olması modelin iyi olduğunu gösterir)")
+# R-Kare (Modelin veriyi açıklama gücü - % olarak düşünülebilir)
+r2 = r2_score(y_val, y_pred)
 
-# Gerçek ve Tahmini değerlerden birkaç örnek göster
-print("\n   Örnek Tahminler (Gerçek vs. Tahmin):")
-comparison_df = pd.DataFrame({'Gerçek Skor': y_val, 'Tahmin Edilen Skor': y_pred})
-print(comparison_df.head())
+# ÖZEL DOĞRULUK (Custom Accuracy)
+# Mantık: Eğer tahmin, gerçek değerden en fazla 0.5 puan şaştıysa "DOĞRU" kabul et.
+# Örn: Gerçek 4, Tahmin 4.4 -> DOĞRU. Gerçek 4, Tahmin 3.2 -> YANLIŞ.
+threshold = 0.5
+correct_predictions = np.sum(np.abs(y_val - y_pred) <= threshold)
+custom_accuracy = (correct_predictions / len(y_val)) * 100
 
-# --- 5. MODELİ KAYDETME ---
+print(f"\n🏆 MODEL PERFORMANS RAPORU")
+print(f"==========================================")
+print(f"1. Ortalama Sapma (MAE): {mae:.4f}")
+print(f"   (Model ortalama {mae:.2f} puan hata yapıyor)")
+print(f"------------------------------------------")
+print(f"2. Açıklayıcılık Oranı (R2 Score): {r2:.4f}")
+print(f"   (Model verideki değişimin %{r2*100:.1f}'ini açıklayabiliyor)")
+print(f"------------------------------------------")
+print(f"3. Toleranslı Doğruluk (±0.5 Puan): %{custom_accuracy:.2f}")
+print(f"   (Tahminlerin %{custom_accuracy:.1f}'i, gerçek puana çok yakın)")
+print(f"==========================================")
 
+print("\n👀 Örnek Tahminler:")
+results = pd.DataFrame({'Gerçek': y_val, 'Tahmin': np.round(y_pred, 1)})
+print(results.head(5))
+
+# --- 5. KAYIT ---
 model_filename = 'mood_regressor.pkl'
-# Özellik listesini ve modeli tek bir dosyaya kaydet
-model_payload = {
-    'model': model,
-    'features': FEATURES
-}
-
 with open(model_filename, 'wb') as f:
-    pickle.dump(model_payload, f)
-    
-print("\n" + "="*60)
-print("✅ EĞİTİM TAMAMLANDI!")
-print(f"🏆 Regresyon modeli '{model_filename}' olarak kaydedildi.")
-print("="*60)
+    pickle.dump({'model': model, 'features': FEATURES}, f)
+print(f"\n✅ Model kaydedildi: {model_filename}")

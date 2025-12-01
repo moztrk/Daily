@@ -45,31 +45,31 @@ try:
     
     
     KONU_ETIKETLERI = {
-        "İş ve Kariyer": "iş toplantı patron müdür proje görev şirket ofis maaş terfi kariyer işyeri mesai",
+        "İş ve Kariyer": "iş toplantı patron müdür proje görev şirket ofis maaş terfi kariyer işyeri mesai çalışma  çalışmak",
         "Eğitim ve Okul": "okul ders öğretmen sınav ödev üniversite öğrenci not eğitim",
         "Sosyal İlişkiler": "arkadaş buluşma dostluk sosyal ilişki dost sohbet eğlence",
-        "Aile": "anne baba kardeş aile çocuk ebeveyn akraba ev yuva",
+        "Aile": "anne baba kardeş aile çocuk ebeveyn akraba ev yuva  sevgili eş çocukluk  ailevi ",
         "Sağlık": "hastane doktor sağlık hastalık ilaç tedavi eczane vitamin hasta tahlil muayene kilo diyet spor halsiz rahatsız ağrı acı yorgun grip nezle",
         "Finans ve Para": "para maaş banka kredi alışveriş borç tasarruf yatırım harcama ödeme market",
         "Teknoloji": "bilgisayar telefon internet uygulama yazılım teknoloji dijital online oyun",
         "Kişisel Gelişim": "hedef motivasyon öğrenme kitap okuma özgüven başarı kariyer planı eğitim semineri",
-        "Genel Günlük": "bugün gün günlük rutin normal gündelik sabah akşam"
+        "Genel Günlük": "bugün gün günlük rutin normal gündelik sabah akşam gece hava hava durumu yemek kahve çay uyku uyumak dinlenme",
     }
     
     
     HARD_KEYWORDS = {
         "İş ve Kariyer": ["iş", "işe", "işten", "işyeri", "patron", "patronum", "müdür", "toplantı", "proje", "görev", "ofis", "mesai", "şirket"],
-        "Eğitim ve Okul": ["okul", "okula", "okulda", "okuldan", "ders", "derste", "öğretmen", "sınav", "ödev", "üniversite", "öğrenci"],
-        "Aile": ["anne", "annem", "annemi", "baba", "babam", "babamı", "babamla", "kardeş", "kardeşim", "aile", "çocuk", "çocuğum", "ebeveyn"],
-        "Sağlık": ["hastane", "hastaneye", "hastanede", "hastaneden", "doktor", "doktora", "hasta", "hastalık", "ilaç", "tedavi", "eczane", "vitamin", "tahlil", "ağrı", "acı", "grip", "spor", "spora", "sporu"],
-        "Finans ve Para": ["para", "parası", "maaş", "banka", "kredi", "borç", "ödeme", "alışveriş", "alışverişe", "market", "satın", "harcama", "ücret"],
-        "Teknoloji": ["bilgisayar", "telefon", "internet", "uygulama", "yazılım", "oyun", "online"],
-        "Kişisel Gelişim": ["hedef", "motivasyon", "başarı", "gelişim", "kitap", "kitabı", "oku", "okuma", "okuyorum"],
+        "Eğitim ve Okul": ["okul", "okula", "okulda", "okuldan", "ders", "derste", "öğretmen", "sınav", "ödev", "üniversite", "öğrenci", "not", "eğitim", "sınıf", "kampüs", "hoca", ],
+        "Aile": ["anne", "annem", "annemi", "baba", "babam", "babamı", "babamla", "kardeş", "kardeşim", "aile", "çocuk", "çocuğum", "ebeveyn", "akraba", "eş", "sevgili", "evlat", "dede", "nine", "hala", "dayı", "amca", "teyze",],
+        "Sağlık": ["hastane", "hastaneye", "hastanede", "hastaneden", "doktor", "doktora", "hasta", "hastalık", "ilaç", "tedavi", "eczane", "vitamin", "tahlil", "ağrı", "acı", "grip", "nezle", "muayene", "kilo", "diyet",],
+        "Finans ve Para": ["para", "parası", "maaş", "banka", "kredi", "borç", "ödeme", "alışveriş", "alışverişe", "market", "satın", "harcama", "ücret", "fatura", "finans", "yatırım","tasarruf","bütçe","makbuz"],
+        "Teknoloji": ["bilgisayar", "telefon", "internet", "uygulama", "yazılım", "oyun", "online","dijital", "teknoloji", "kulaklık", "tablet", "televizyon", "sosyal medya", "wifi", "modem","şarj","wifi"],
+        "Kişisel Gelişim": ["hedef", "motivasyon", "başarı", "gelişim", "kitap", "kitabı", "oku", "okuma", "okuyorum", "özgüven", "plan", "seminer", "eğitim","spor", "kurs", ],
     }
     
     
     CONTEXTUAL_KEYWORDS = {
-        "Finans ve Para": ["aldım", "aldı"],  
+          
     }
     
     
