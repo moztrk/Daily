@@ -2,7 +2,7 @@ import { Alert, Keyboard } from 'react-native';
 
 // ❗ ÖNEMLİ: Bilgisayarının güncel IP adresini buraya yaz.
 // Telefonun ve bilgisayarın aynı Wi-Fi ağında olmalı.
-const API_URL = 'http://192.168.86.1:8000'; 
+const API_URL = 'http://192.168.110.192:8000'; 
 
 // 1. GÜNLÜK KAYDETME VE AI TAHMİNİ ALMA
 export const kaydet = async (metin, setLoading, setMetin, navigation) => {
@@ -103,5 +103,21 @@ export const getMoodPrediction = async (entryId) => {
         return await response.json();
     } catch (error) {
         return null;
+    }
+};
+
+export const fetchDailyInsight = async () => {
+    try {
+        const response = await fetch(`${API_URL}/insights`);
+        if (!response.ok) return null;
+        
+        // DÜZELTME: json.insight diyerek sadece metni almak yerine
+        // TÜM OBJEYİ döndürüyoruz (içinde insight, trend, related_topic var)
+        return await response.json(); 
+        
+    } catch (error) {
+        console.log("Insight hatası:", error);
+        // Hata durumunda da obje dönüyoruz ki ekran bozulmasın
+        return { insight: "Bugün harika bir gün olabilir!", trend: "neutral" };
     }
 };

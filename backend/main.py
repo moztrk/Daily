@@ -192,3 +192,89 @@ def predict_mood(entry_id: int):
     except Exception as e:
         print(f"Hata: {e}")
         raise HTTPException(500, f"Tahmin hatası: {str(e)}")
+
+@app.get("/insights")
+def generate_insights():
+    """
+    Kullanıcının geçmiş verilerine (son 50 günlük) bakar.
+    Her günlüğü tek tek yapay zeka modeline (Mood Regressor) sorar.
+    Konuların ortalama mod puanını hesaplar ve buna göre tavsiye verir.
+    """
+    # Model veya DB yoksa boş dön
+    if not MOOD_MODEL or not supabase:
+        return {"insight": "Henüz yeterli veri yok, yazmaya devam et! 🚀", "related_topic": None}
+
+    try:
+        # 1. Son 50 veriyi çek
+        data, _ = supabase.table("gunluk_girisler")\
+            .select("*")\
+            .order("created_at", desc=True)\
+            .limit(50)\
+            .execute()
+        
+        entries = data[1]
+        
+        # Yeterli veri yoksa standart mesaj dön
+        if len(entries) < 3:
+            return {"insight": "Analiz için biraz daha günlük yazman gerekiyor. 📝", "related_topic": None}
+
+        # 2. Her entry için Mod Tahmini yap ve Konuları Grupla
+        topic_moods = {} 
+        
+        for entry in entries:
+            # Özellikleri hazırla (Tek bir satır için)
+            features = prepare_features_single(entry['analiz_sonucu'], entry['created_at'])
+            
+            # Modu tahmin et (Modeli burada kullanıyoruz!)
+            predicted_mood = MOOD_MODEL.predict(features)[0]
+            
+            # Bu yazının konularını al
+            topics = entry['analiz_sonucu'].get('topics', [])
+            for topic in topics:
+                if topic not in topic_moods:
+                    topic_moods[topic] = []
+                topic_moods[topic].append(predicted_mood)
+
+        # 3. Ortalamaları Hesapla
+        avg_moods = []
+        for topic, scores in topic_moods.items():
+            if len(scores) >= 1: # En az 1 kere bahsedilmiş olsun
+                avg = sum(scores) / len(scores)
+                avg_moods.append((topic, avg))
+        
+        # 4. En İyi ve En Kötü Konuyu Bul
+        if not avg_moods:
+            return {"insight": "Verilerini analiz ediyorum, yakında sonuçlar burada belirecek. 🤖", "related_topic": None}
+
+        # Puana göre sırala (Büyükten küçüğe)
+        avg_moods.sort(key=lambda x: x[1], reverse=True) 
+        
+        best_topic, best_score = avg_moods[0]
+        worst_topic, worst_score = avg_moods[-1]
+
+        # 5. Cümleyi Oluştur (Rule-Based Insight Generation)
+        response = {}
+        
+        # Pozitif İçgörü (Eğer en iyi konu gerçekten iyiyse)
+        if best_score > 3.8:
+            response["insight"] = f"💡 İpucu: '{best_topic}' konularından bahsettiğinde modun gözle görülür şekilde yükseliyor ({best_score:.1f}/5). Buna daha çok zaman ayırmalısın!"
+            response["related_topic"] = best_topic
+            response["trend"] = "positive"
+        
+        # Negatif İçgörü (Eğer en kötü konu gerçekten kötüyse)
+        elif worst_score < 2.5:
+            response["insight"] = f"⚠️ Dikkat: '{worst_topic}' konuları seni biraz yoruyor gibi ({worst_score:.1f}/5). Bu anlarda kendine dikkat etmelisin."
+            response["related_topic"] = worst_topic
+            response["trend"] = "negative"
+        
+        # Nötr Durum
+        else:
+            response["insight"] = f"📊 Analiz: '{best_topic}' senin için en dengeli konu gibi görünüyor. Yazmaya devam et, seni tanımaya çalışıyorum!"
+            response["related_topic"] = best_topic
+            response["trend"] = "neutral"
+
+        return response
+
+    except Exception as e:
+        print(f"Insight Hatası: {e}")
+        return {"insight": "İçgörüler şu an oluşturulamıyor.", "related_topic": None}

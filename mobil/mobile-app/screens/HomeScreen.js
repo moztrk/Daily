@@ -6,7 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { LineChart } from "react-native-chart-kit";
 import { Dimensions } from "react-native";
 import { useFocusEffect } from '@react-navigation/native';
-import { fetchEntries } from '../services/ApiService';
+// Tek satırda temiz import
+import { fetchEntries, fetchDailyInsight } from '../services/ApiService';
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -14,41 +15,57 @@ export default function HomeScreen({ navigation }) {
   const [entries, setEntries] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [stats, setStats] = useState({ streak: 0, total: 0, lastMood: 0 });
+  const [insight, setInsight] = useState("Verileriniz analiz ediliyor...");
 
   const loadData = async () => {
     setRefreshing(true);
-    const data = await fetchEntries();
-    setEntries(data);
-    
-    // Basit istatistik hesabı
-    if (data.length > 0) {
-        // Son duygu skorunu al (Simüle edilmiş user_mood yoksa analizden hesapla)
-        // Burada basitlik için analizdeki duygu skorunu baz alıyoruz
-        const lastEntry = data[0];
-        const sentiment = lastEntry.analiz_sonucu?.sentiment?.skor || 0;
-        setStats({
-            streak: calculateStreak(data),
-            total: data.length,
-            lastMood: sentiment
-        });
+
+    try {
+        // Paralel olarak verileri ve içgörüyü çek
+        const [data, insightResult] = await Promise.all([
+            fetchEntries(),
+            fetchDailyInsight()
+        ]);
+
+        setEntries(data);
+        
+        // --- DÜZELTME BURADA ---
+        // Gelen 'insightResult' bir obje olduğu için içindeki .insight metnini alıyoruz.
+        // Eğer obje değilse veya boşsa varsayılanı koruyoruz.
+        if (insightResult && typeof insightResult === 'object' && insightResult.insight) {
+            setInsight(insightResult.insight);
+        } else if (typeof insightResult === 'string') {
+            setInsight(insightResult);
+        }
+        // -----------------------
+        
+        // İstatistik hesabı
+        if (data.length > 0) {
+            const lastEntry = data[0];
+            const sentiment = lastEntry.analiz_sonucu?.sentiment?.skor || 0;
+            setStats({
+                streak: calculateStreak(data),
+                total: data.length,
+                lastMood: sentiment
+            });
+        }
+    } catch (e) {
+        console.log(e);
+    } finally {
+        setRefreshing(false);
     }
-    setRefreshing(false);
   };
 
-  // Ekran her odaklandığında veriyi yenile
   useFocusEffect(
     useCallback(() => {
       loadData();
     }, [])
   );
 
-  // Basit streak hesaplama (ardışık günler)
   const calculateStreak = (data) => {
-      // Gerçek mantık burada olacak, şimdilik dummy
       return data.length > 0 ? Math.min(data.length, 5) : 0; 
   };
 
-  // Grafik verisini hazırla (Son 7 kayıt)
   const chartData = {
     labels: entries.slice(0, 7).reverse().map(e => {
         const date = new Date(e.created_at);
@@ -57,12 +74,11 @@ export default function HomeScreen({ navigation }) {
     datasets: [
       {
         data: entries.slice(0, 7).reverse().map(e => {
-            // Duygu skorunu (-1 ile 1 arası) grafiğe döküyoruz
             let score = e.analiz_sonucu?.sentiment?.skor || 0;
             if (e.analiz_sonucu?.sentiment?.duygu === 'negative') score *= -1;
             return score;
         }),
-        color: (opacity = 1) => `rgba(255, 193, 7, ${opacity})`, // Accent color
+        color: (opacity = 1) => `rgba(255, 193, 7, ${opacity})`,
         strokeWidth: 2
       }
     ],
@@ -79,7 +95,7 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.subGreeting}>Bugün ruh halin nasıl?</Text>
         </View>
         
-        {/* Büyük CTA Kartı */}
+        {/* 1. Büyük CTA Kartı (Yazma Butonu) */}
         <TouchableOpacity 
             style={styles.ctaCard}
             onPress={() => navigation.navigate('AddEntry')}
@@ -90,8 +106,22 @@ export default function HomeScreen({ navigation }) {
             <Ionicons name="arrow-forward" size={24} color="#FFF" />
           </View>
         </TouchableOpacity>
+
+        {/* 2. Yapay Zeka İçgörüsü */}
+        <View style={styles.section}>
+            <View style={styles.insightCard}>
+                <View style={styles.insightHeader}>
+                    <Ionicons name="sparkles" size={20} color={COLORS.accent} />
+                    <Text style={styles.insightTitle}>Yapay Zeka İçgörüsü</Text>
+                </View>
+                {/* Burada artık kesinlikle bir String render ediliyor */}
+                <Text style={styles.insightText}>
+                    "{insight}"
+                </Text>
+            </View>
+        </View>
         
-        {/* Grafik Alanı */}
+        {/* 3. Grafik Alanı */}
         <View style={styles.section}>
             <Text style={styles.sectionTitle}>Duygu Trendi</Text>
             {entries.length > 0 ? (
@@ -123,7 +153,7 @@ export default function HomeScreen({ navigation }) {
             )}
         </View>
 
-        {/* İstatistikler */}
+        {/* 4. İstatistikler */}
         <View style={styles.statsContainer}>
           <View style={[styles.statCard, {marginRight: 16}]}>
             <Ionicons name="flame" size={28} color={COLORS.warning} />
@@ -174,4 +204,21 @@ const styles = StyleSheet.create({
   statCard: { flex: 1, backgroundColor: COLORS.card_elevated, borderRadius: 20, padding: 20, alignItems: 'center' },
   statLabel: { color: COLORS.text_secondary, fontSize: 14, marginTop: 8 },
   statValue: { color: COLORS.text_primary, fontSize: 24, fontWeight: 'bold', marginTop: 4 },
+
+  insightCard: {
+    backgroundColor: COLORS.card,
+    borderRadius: 16,
+    padding: 20,
+    marginHorizontal: 0, 
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.accent,
+    shadowColor: COLORS.accent,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  insightHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
+  insightTitle: { color: COLORS.text_primary, fontWeight: 'bold', fontSize: 16 },
+  insightText: { color: COLORS.text_secondary, fontSize: 14, lineHeight: 22, fontStyle: 'italic' },
 });
