@@ -52,6 +52,7 @@ Platform: Supabase (PostgreSQL)
 
 📂 Proje Mimarisi
 
+```
 Daily/
 ├── backend/
 │   ├── main.py                 # API ve Yapay Zeka Entegrasyon Noktası
@@ -64,29 +65,32 @@ Daily/
     ├── screens/                # Arayüz Ekranları (Ana Sayfa, Raporlar...)
     ├── navigation/             # Uygulama İçi Yönlendirme
     └── services/               # Backend ile Haberleşme Servisi
-
+```
 
 ⚙️ Kurulum ve Çalıştırma
 
 1. Backend Kurulumu
 
+```bash
 cd backend
 pip install -r requirements.txt
-
+```
 
 .env dosyasını oluşturun ve Supabase anahtarlarını girin.
 
 Sunucuyu Başlatma:
 
+```bash
 uvicorn main:app --reload --host 0.0.0.0
-
+```
 
 2. Mobil Uygulama Kurulumu
 
+```bash
 cd mobil/mobile-app
 npm install
 npx expo start
-
+```
 
 🧠 Algoritmik Yaklaşım
 
@@ -99,6 +103,8 @@ Hibrit Konu Tespiti: Vektör benzerliği (Cosine Similarity) ve Anahtar Kelime D
 Regresyon Analizi: Duygu skoru, konu etiketleri, zaman bilgisi ve varlık sayıları birleştirilerek 30+ özellikli bir matris oluşturulur ve Random Forest algoritması ile mod tahmini yapılır.
 
 Performans: Model, test veri setinde yüksek doğruluk oranıyla tahmin yapmaktadır.
+
+---
 
 🧠 DailyMind: AI-Powered Personal Analysis Engine (English)
 
@@ -152,6 +158,7 @@ Database: Supabase (PostgreSQL)
 
 📂 Project Structure
 
+```
 Daily/
 ├── backend/
 │   ├── main.py                 # FastAPI Entry Point & API Endpoints
@@ -166,31 +173,34 @@ Daily/
     ├── screens/                # UI Screens (Home, Reports, AddEntry...)
     ├── navigation/             # Routing Logic
     └── services/               # API Communication (ApiService.js)
-
+```
 
 ⚙️ Installation & Setup
 
 1. Backend Setup
 
+```bash
 cd backend
 python -m venv venv
 source venv/bin/activate  # or venv\Scripts\activate on Windows
 pip install -r requirements.txt
-
+```
 
 Create a .env file with your SUPABASE_URL and SUPABASE_KEY.
 
 Run the Server:
 
+```bash
 uvicorn main:app --reload --host 0.0.0.0
-
+```
 
 2. Mobile App Setup
 
+```bash
 cd mobil/mobile-app
 npm install
 npx expo start
-
+```
 
 🧠 AI Architecture
 
