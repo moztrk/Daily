@@ -1,4 +1,106 @@
-🧠 DailyMind: AI-Powered Personal Analysis Engine
+🧠 DailyMind: Yapay Zeka Destekli Kişisel Analiz Motoru
+
+DailyMind, kullanıcının günlük metin girdilerini modern Doğal Dil İşleme (NLP) teknikleri ile analiz eden ve Makine Öğrenmesi algoritmaları kullanarak kullanıcının ruh halini tahminleyen akıllı bir mobil uygulamadır.
+
+Bu proje, sadece veri depolayan klasik günlük uygulamalarından farklı olarak, veriden anlam çıkaran ve kullanıcıya kişiselleştirilmiş içgörüler sunan bir karar destek sistemi olarak tasarlanmıştır.
+
+🚀 Temel Özellikler
+
+📝 Akıllı Günlük Tutma: Kullanıcı dostu mobil arayüz üzerinden günlük girişi.
+
+🤖 NLP Analiz Pipeline'ı: Her metin girdisi anlık olarak işlenir:
+
+Duygu Analizi: Metnin pozitif, negatif veya nötr durumu ve güven skoru (BERT).
+
+Varlık İsmi Tanıma (NER): Metindeki kişi, kurum ve yer isimlerinin tespiti.
+
+Konu Sınıflandırma: Sentence-BERT ve Kosinüs Benzerliği kullanan hibrit bir algoritma ile metnin konusunun (İş, Sağlık, Aile vb.) belirlenmesi.
+
+🔮 Mod Tahminleme: Eğitilmiş Random Forest Regressor modeli, metin özelliklerine bakarak kullanıcının o günkü modunu (1-5 arası) tahmin eder.
+
+💡 Kişiselleştirilmiş İçgörüler: Sistem, geçmiş verilere bakarak "İş konuları modunu düşürüyor" gibi otomatik tavsiyeler üretir.
+
+📊 Görsel Raporlama: Duygu trendleri ve konu dağılımlarını gösteren interaktif grafikler.
+
+🛠️ Teknolojik Altyapı
+
+Backend ve Yapay Zeka
+
+API Framework: Python FastAPI
+
+NLP Modelleri:
+
+Duygu & NER: savasy/bert-base-turkish modelleri.
+
+Konu Modelleme: emrecan/bert-base-turkish-cased-mean-nli-stsb-tr (SBERT).
+
+Makine Öğrenmesi: Scikit-learn (Random Forest, StandardScaler).
+
+Veri Seti: Proje kapsamında oluşturulan 3.000+ satırlık yapılandırılmış veri seti ile model eğitimi gerçekleştirilmiştir.
+
+Frontend (Mobil)
+
+Framework: React Native (Expo)
+
+Navigasyon: React Navigation
+
+Görselleştirme: react-native-chart-kit
+
+Veritabanı
+
+Platform: Supabase (PostgreSQL)
+
+📂 Proje Mimarisi
+
+Daily/
+├── backend/
+│   ├── main.py                 # API ve Yapay Zeka Entegrasyon Noktası
+│   ├── nlp_pipeline.py         # NLP Motoru (BERT, SBERT Algoritmaları)
+│   ├── train_regressor.py      # Makine Öğrenmesi Eğitim Betiği
+│   ├── prepare_data.py         # Veri Ön İşleme ve Özellik Mühendisliği
+│   └── mood_regressor.pkl      # Eğitilmiş Model Dosyası
+│
+└── mobil/mobile-app/
+    ├── screens/                # Arayüz Ekranları (Ana Sayfa, Raporlar...)
+    ├── navigation/             # Uygulama İçi Yönlendirme
+    └── services/               # Backend ile Haberleşme Servisi
+
+
+⚙️ Kurulum ve Çalıştırma
+
+1. Backend Kurulumu
+
+cd backend
+pip install -r requirements.txt
+
+
+.env dosyasını oluşturun ve Supabase anahtarlarını girin.
+
+Sunucuyu Başlatma:
+
+uvicorn main:app --reload --host 0.0.0.0
+
+
+2. Mobil Uygulama Kurulumu
+
+cd mobil/mobile-app
+npm install
+npx expo start
+
+
+🧠 Algoritmik Yaklaşım
+
+Sistem, metin verisini anlamlandırmak için çok katmanlı bir yaklaşım kullanır:
+
+Vektörleştirme (Embedding): Metinler, Türkçe için eğitilmiş SBERT modeli ile 768 boyutlu vektör uzayına taşınır.
+
+Hibrit Konu Tespiti: Vektör benzerliği (Cosine Similarity) ve Anahtar Kelime Desteği (Keyword Boosting) birleştirilerek en doğru konu etiketi bulunur.
+
+Regresyon Analizi: Duygu skoru, konu etiketleri, zaman bilgisi ve varlık sayıları birleştirilerek 30+ özellikli bir matris oluşturulur ve Random Forest algoritması ile mod tahmini yapılır.
+
+Performans: Model, test veri setinde yüksek doğruluk oranıyla tahmin yapmaktadır.
+
+🧠 DailyMind: AI-Powered Personal Analysis Engine (English)
 
 DailyMind is a mobile journaling application that goes beyond simple text storage. It utilizes advanced Natural Language Processing (NLP) and Machine Learning (ML) techniques to analyze user entries, extract hidden patterns, and predict mood fluctuations based on topics and entities.
 
@@ -96,7 +198,9 @@ The system uses a multi-stage pipeline to process data:
 
 Text Ingestion: User inputs text.
 
-NLP Analysis: * Sentiment: Determined via BERT. Scores are signed (Negative < 0, Positive > 0).
+NLP Analysis:
+
+Sentiment: Determined via BERT. Scores are signed (Negative < 0, Positive > 0).
 
 Topic Classification: Calculated using Semantic Similarity (Cosine) between the input embedding and pre-computed topic embeddings.
 
