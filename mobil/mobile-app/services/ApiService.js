@@ -1,10 +1,9 @@
 import { Alert, Keyboard } from 'react-native';
 
-// ❗ ÖNEMLİ: Bilgisayarının güncel IP adresini buraya yaz.
-// Telefonun ve bilgisayarın aynı Wi-Fi ağında olmalı.
+
 const API_URL = 'http://192.168.110.192:8000'; 
 
-// 1. GÜNLÜK KAYDETME VE AI TAHMİNİ ALMA
+
 export const kaydet = async (metin, setLoading, setMetin, navigation) => {
   if (!metin.trim()) {
     Alert.alert('Hata', 'Lütfen bir metin giriniz.');
