@@ -1,18 +1,37 @@
-// screens/LoginScreen.js
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, StatusBar } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, StatusBar, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS } from '../constants/colors';
-import { Ionicons } from '@expo/vector-icons'; // Logo için basit bir ikon
+import { Ionicons } from '@expo/vector-icons';
+import { login } from '../services/ApiService'; // login fonksiyonunu import et
 
 export default function LoginScreen() {
   const navigation = useNavigation();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    // API bağlantısı yok, direkt yönlendir.
-    navigation.navigate('Main');
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Hata', 'Lütfen e-posta ve şifrenizi girin.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await login(email, password);
+      // Başarılı giriş sonrası ana sayfaya yönlendir
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Main' }],
+      });
+    } catch (error) {
+      // Hata zaten ApiService içinde gösteriliyor
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -28,6 +47,8 @@ export default function LoginScreen() {
           placeholderTextColor={COLORS.text_tertiary}
           keyboardType="email-address"
           autoCapitalize="none"
+          value={email}
+          onChangeText={setEmail}
         />
         
         <Text style={styles.label}>Password</Text>
@@ -36,16 +57,18 @@ export default function LoginScreen() {
           placeholder="Enter your password"
           placeholderTextColor={COLORS.text_tertiary}
           secureTextEntry
+          value={password}
+          onChangeText={setPassword}
         />
         
-        <TouchableOpacity onPress={handleLogin} style={styles.buttonContainer}>
+        <TouchableOpacity onPress={handleLogin} style={styles.buttonContainer} disabled={loading}>
           <LinearGradient
             colors={[COLORS.primary, COLORS.accent]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.button}
           >
-            <Text style={styles.buttonText}>Log In</Text>
+            <Text style={styles.buttonText}>{loading ? 'Logging In...' : 'Log In'}</Text>
           </LinearGradient>
         </TouchableOpacity>
         

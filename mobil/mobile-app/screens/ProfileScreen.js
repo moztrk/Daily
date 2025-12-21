@@ -1,16 +1,33 @@
-// screens/ProfileScreen.js
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
+import { logout } from '../services/ApiService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ProfileScreen({ navigation }) {
-  
+  const [userEmail, setUserEmail] = useState('Yükleniyor...');
+
+  useEffect(() => {
+    // Kullanıcı bilgilerini AsyncStorage'dan çek
+    const loadUserInfo = async () => {
+      try {
+        const email = await AsyncStorage.getItem('userEmail');
+        if (email) {
+          setUserEmail(email);
+        }
+      } catch (e) {
+        console.error("Kullanıcı bilgisi yüklenemedi", e);
+      }
+    };
+    loadUserInfo();
+  }, []);
+
   const handleLogout = () => {
       Alert.alert("Çıkış Yap", "Hesabından çıkmak istediğine emin misin?", [
           { text: "İptal", style: "cancel" },
-          { text: "Çıkış Yap", style: "destructive", onPress: () => navigation.navigate("Login") }
+          { text: "Çıkış Yap", style: "destructive", onPress: () => logout(navigation) }
       ]);
   };
 
@@ -31,6 +48,7 @@ export default function ProfileScreen({ navigation }) {
         {/* Profil Başlığı */}
         <View style={styles.profileHeader}>
             <View style={styles.avatarContainer}>
+                {/* Rastgele bir avatar yerine placeholder veya e-posta baş harfi kullanılabilir */}
                 <Image 
                     source={{ uri: 'https://i.pravatar.cc/150?img=12' }} 
                     style={styles.avatar} 
@@ -39,8 +57,8 @@ export default function ProfileScreen({ navigation }) {
                     <Ionicons name="pencil" size={12} color="#FFF" />
                 </View>
             </View>
-            <Text style={styles.name}>Alex Yılmaz</Text>
-            <Text style={styles.email}>alex@example.com</Text>
+            <Text style={styles.name}>Kullanıcı</Text>
+            <Text style={styles.email}>{userEmail}</Text>
         </View>
 
         {/* Menü */}

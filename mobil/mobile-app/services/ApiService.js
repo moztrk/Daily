@@ -1,8 +1,83 @@
 import { Alert, Keyboard } from 'react-native';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_URL = 'http://192.168.110.192:8000'; 
 
+
+// --- AUTH İŞLEMLERİ ---
+
+// Token'ı alan yardımcı fonksiyon
+const getAuthHeaders = async () => {
+    const token = await AsyncStorage.getItem('userToken');
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    };
+};
+
+// 1. Kayıt Ol (Sign Up)
+export const signUp = async (email, password) => {
+    try {
+        const response = await fetch(`${API_URL}/auth/signup`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+        });
+        
+        const json = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(json.detail || 'Kayıt başarısız.');
+        }
+        
+        return json; // { msg: "Kayıt başarılı", user: ... }
+    } catch (error) {
+        Alert.alert('Hata', error.message);
+        throw error;
+    }
+};
+
+// 2. Giriş Yap (Login)
+export const login = async (email, password) => {
+    try {
+        const response = await fetch(`${API_URL}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+        });
+        
+        const json = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(json.detail || 'Giriş başarısız.');
+        }
+        
+        // Token ve User bilgilerini sakla
+        await AsyncStorage.setItem('userToken', json.access_token);
+        await AsyncStorage.setItem('userId', String(json.user.id));
+        await AsyncStorage.setItem('userEmail', json.user.email);
+        
+        return json;
+    } catch (error) {
+        Alert.alert('Hata', error.message);
+        throw error;
+    }
+};
+
+// 3. Çıkış Yap (Logout)
+export const logout = async (navigation) => {
+    try {
+        await AsyncStorage.clear();
+        navigation.reset({
+            index: 0,
+            routes: [{ name: 'Login' }],
+        });
+    } catch (e) {
+        console.error("Çıkış hatası:", e);
+    }
+};
+
+// --- GÜNCELLENMİŞ FONKSİYONLAR (Token ile İstek Atma) ---
 
 export const kaydet = async (metin, setLoading, setMetin, navigation) => {
   if (!metin.trim()) {
@@ -14,10 +89,10 @@ export const kaydet = async (metin, setLoading, setMetin, navigation) => {
   Keyboard.dismiss();
 
   try {
-    // A. Önce Kaydet
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/entries`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: headers,
       body: JSON.stringify({ metin: metin }),
     });
 
@@ -28,17 +103,15 @@ export const kaydet = async (metin, setLoading, setMetin, navigation) => {
     }
 
     if (json.status === 'success') {
-      const entryId = json.data.id; // Yeni kaydedilen günlüğün ID'si
+      const entryId = json.data.id;
       
-      // B. Kayıt Başarılıysa Hemen AI Tahminini Sor (Zincirleme İstek)
       try {
-          const predictResponse = await fetch(`${API_URL}/predict-mood/${entryId}`);
+          const predictResponse = await fetch(`${API_URL}/predict-mood/${entryId}`, { headers });
           const predictJson = await predictResponse.json();
           
           if (predictResponse.ok) {
               const { mood_score, emoji, message } = predictJson.ai_prediction;
               
-              // C. Kullanıcıya Havalı Bir Sonuç Göster
               Alert.alert(
                   `AI Analizi: ${emoji}`,
                   `Mod Puanın: ${mood_score}/5\n\n${message}`,
@@ -78,11 +151,10 @@ export const kaydet = async (metin, setLoading, setMetin, navigation) => {
   }
 };
 
-// 2. GEÇMİŞ GÜNLÜKLERİ LİSTELEME (Ana Sayfa ve Listeler İçin)
 export const fetchEntries = async () => {
     try {
-        // Son 50 kaydı getir
-        const response = await fetch(`${API_URL}/entries?limit=50`);
+        const headers = await getAuthHeaders();
+        const response = await fetch(`${API_URL}/entries?limit=50`, { headers });
         if (!response.ok) {
             console.error("Veri çekme hatası:", await response.text());
             return [];
@@ -94,10 +166,10 @@ export const fetchEntries = async () => {
     }
 };
 
-// 3. TEKİL TAHMİN SORGULAMA (Detay Sayfası İçin - Opsiyonel)
 export const getMoodPrediction = async (entryId) => {
     try {
-        const response = await fetch(`${API_URL}/predict-mood/${entryId}`);
+        const headers = await getAuthHeaders();
+        const response = await fetch(`${API_URL}/predict-mood/${entryId}`, { headers });
         if (!response.ok) return null;
         return await response.json();
     } catch (error) {
@@ -107,16 +179,14 @@ export const getMoodPrediction = async (entryId) => {
 
 export const fetchDailyInsight = async () => {
     try {
-        const response = await fetch(`${API_URL}/insights`);
+        const headers = await getAuthHeaders();
+        const response = await fetch(`${API_URL}/insights`, { headers });
         if (!response.ok) return null;
         
-        // DÜZELTME: json.insight diyerek sadece metni almak yerine
-        // TÜM OBJEYİ döndürüyoruz (içinde insight, trend, related_topic var)
         return await response.json(); 
         
     } catch (error) {
         console.log("Insight hatası:", error);
-        // Hata durumunda da obje dönüyoruz ki ekran bozulmasın
         return { insight: "Bugün harika bir gün olabilir!", trend: "neutral" };
     }
 };

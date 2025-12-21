@@ -1,14 +1,42 @@
-// screens/SignUpScreen.js
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, StatusBar } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, StatusBar, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
+import { signUp } from '../services/ApiService'; // signUp fonksiyonunu import et
 
 export default function SignUpScreen() {
   const navigation = useNavigation();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSignUp = async () => {
+    if (!email || !password || !confirmPassword) {
+      Alert.alert('Hata', 'Lütfen tüm alanları doldurun.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert('Hata', 'Şifreler uyuşmuyor.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await signUp(email, password);
+      Alert.alert('Başarılı', 'Kayıt işlemi başarılı! Lütfen giriş yapın.', [
+        { text: 'Tamam', onPress: () => navigation.navigate('Login') }
+      ]);
+    } catch (error) {
+      // Hata zaten ApiService içinde gösteriliyor
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -24,6 +52,9 @@ export default function SignUpScreen() {
           placeholder="Enter your email"
           placeholderTextColor={COLORS.text_tertiary}
           keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
         />
         
         <Text style={styles.label}>Password</Text>
@@ -32,6 +63,8 @@ export default function SignUpScreen() {
           placeholder="Enter your password"
           placeholderTextColor={COLORS.text_tertiary}
           secureTextEntry
+          value={password}
+          onChangeText={setPassword}
         />
 
         <Text style={styles.label}>Confirm Password</Text>
@@ -40,16 +73,18 @@ export default function SignUpScreen() {
           placeholder="Confirm your password"
           placeholderTextColor={COLORS.text_tertiary}
           secureTextEntry
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
         />
         
-        <TouchableOpacity style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.buttonContainer} onPress={handleSignUp} disabled={loading}>
           <LinearGradient
             colors={[COLORS.primary, COLORS.accent]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.button}
           >
-            <Text style={styles.buttonText}>Sign Up</Text>
+            <Text style={styles.buttonText}>{loading ? 'Signing Up...' : 'Sign Up'}</Text>
           </LinearGradient>
         </TouchableOpacity>
         
